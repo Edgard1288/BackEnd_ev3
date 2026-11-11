@@ -133,7 +133,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # 5. URLs de Control de Autenticación
 LOGIN_URL = 'usuarios:login'
-LOGIN_REDIRECT_URL = 'catalogo:lista'
+LOGIN_REDIRECT_URL = 'core:inicio'
 LOGOUT_REDIRECT_URL = 'core:inicio'
 
 # 6. Mapeo de Mensajes Flash a clases de Bootstrap 5
