@@ -5,7 +5,7 @@
 * **Modelo de Negocio / Giro:** Plataforma de organización de torneos de deportes electrónicos, arriendo/reserva de pases y gestión de aforos.
 * **Integrantes del Equipo:**
   * Edgard García — Ingeniería en Informática (INACAP Sede Chillán)
-  * [Nombre del Integrante 2] — [RUT Integrante 2]
+  * Jose García — Ingeniería en Informática (INACAP Sede Chillán)
 * **Entidad de Contexto / Agrupación (ORM):** CategoriaJuego (ej: Fighting Games, FPS Tactical, MOBA, Battle Royale / Speedrun)
 * **Entidad Principal Gestionable (ORM):** TorneoEvento (con tarifa de inscripción, aforo/cupos máximos, fecha del evento, banner promocional y estado operativo)
 * **Propósito de la Sesión (request.session):** Planificador de pases y cotización de inscripciones a torneos con asignación de cupos por equipo, recargo por servicio (10%), IVA (19%) y comprobante de reserva.
