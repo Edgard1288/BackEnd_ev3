@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Inicio | GG-Arena Esports{% endblock %}
+
+{% block content %}
+<div class="p-5 mb-5 rounded-4 bg-secondary bg-opacity-10 border border-secondary shadow">
+    <div class="row align-items-center">
+        <div class="col-lg-8">
+            <span class="badge bg-danger text-white px-3 py-2 fw-bold mb-3 fs-6">
+                <i class="bi bi-fire me-1"></i>¡TEMPORADA 2026 ABIERTA!
+            </span>
+            <h1 class="display-4 fw-bold mb-3">GG-ARENA ESPORTS & TOURNAMENTS</h1>
+            <p class="lead text-light opacity-75 mb-4">
+                Compite en los mejores torneos regionales y nacionales de Fighting Games, FPS Tactical, MOBA y Battle Royale. Reserva tus cupos de equipo y asegura tu pase de evento.
+            </p>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{% url 'torneos:lista' %}" class="btn btn-danger btn-lg fw-bold px-4">
+                    <i class="bi bi-trophy me-2"></i>Ver Torneos Disponibles
+                </a>
+                <a href="{% url 'core:nosotros' %}" class="btn btn-outline-light btn-lg px-4">
+                    <i class="bi bi-info-circle me-2"></i>Sobre la Plataforma
+                </a>
+            </div>
+        </div>
+        <div class="col-lg-4 text-center d-none d-lg-block">
+            <i class="bi bi-controller text-danger opacity-75" style="font-size: 8rem;"></i>
+        </div>
+    </div>
+</div>
+
+{% if categorias %}
+<div class="mb-5">
+    <h2 class="h4 fw-bold mb-3"><i class="bi bi-grid-fill text-danger me-2"></i>Categorías de Competencia</h2>
+    <div class="row g-3">
+        {% for cat in categorias %}
+        <div class="col-6 col-md-3">
+            <a href="{% url 'torneos:lista' %}?categoria={{ cat.slug }}" class="text-decoration-none">
+                <div class="card border border-secondary bg-dark text-white text-center p-3 h-100 shadow-sm">
+                    <i class="bi bi-display text-danger fs-3 mb-2"></i>
+                    <h6 class="fw-bold mb-1">{{ cat.nombre }}</h6>
+                    <span class="badge bg-secondary">{{ cat.torneos.count }} eventos</span>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<div class="mb-5">
+    <h2 class="h4 fw-bold mb-3"><i class="bi bi-star-fill text-danger me-2"></i>Torneos Abiertos para Inscripción</h2>
+    <div class="row g-4">
+        {% for torneo in destacados %}
+        <div class="col-md-6 col-lg-3">
+            <div class="card h-100 bg-dark text-white border-secondary shadow-sm">
+                {% if torneo.banner %}
+                    <img src="{{ torneo.banner.url }}" class="card-img-top" alt="{{ torneo.nombre }}" style="height: 160px; object-fit: cover;">
+                {% endif %}
+                <div class="card-body d-flex flex-column">
+                    <span class="badge bg-danger mb-2 w-auto">{{ torneo.categoria.nombre }}</span>
+                    <h5 class="card-title fs-6 fw-bold text-truncate">{{ torneo.nombre }}</h5>
+                    <p class="text-secondary small mb-2"><i class="bi bi-person me-1"></i>Org: {{ torneo.organizador }}</p>
+                    <div class="mt-auto pt-2 border-top border-secondary d-flex justify-content-between align-items-center">
+                        <span class="fw-bold text-danger">{{ torneo.precio_formateado }}</span>
+                        <small class="text-secondary">Cupos: {{ torneo.cupos_disponibles }}/{{ torneo.cupos_maximos }}</small>
+                    </div>
+                    <a href="{% url 'torneos:detalle' torneo.slug %}" class="btn btn-outline-danger btn-sm mt-3">Ver Ficha</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-secondary">No hay torneos abiertos actualmente.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

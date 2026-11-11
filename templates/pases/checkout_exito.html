@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}Voucher Digital | GG-Arena{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card bg-dark text-white border-danger p-4 p-md-5 text-center">
+            <i class="bi bi-qr-code text-danger display-1 mb-3"></i>
+            <h1 class="h2 fw-bold mb-1">¡Reserva y Pase Confirmado!</h1>
+            <p class="text-secondary">Presenta este comprobante el día del evento.</p>
+            <span class="badge bg-danger fs-6 py-2 px-3 mb-4">Código de Orden: {{ orden_id }}</span>
+
+            <div class="text-start border border-secondary p-3 rounded mb-4 bg-black">
+                <h6 class="fw-bold text-danger border-bottom border-secondary pb-2">Desglose de Inscripción:</h6>
+                <ul class="list-group list-group-flush mb-3">
+                    {% for item in items %}
+                    <li class="list-group-item bg-transparent text-white d-flex justify-content-between px-0">
+                        <span>{{ item.nombre }} (x{{ item.cantidad }})</span>
+                        <span class="fw-bold">${{ item.subtotal|floatformat:0 }} CLP</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <div class="d-flex justify-content-between text-secondary small">
+                    <span>Subtotal Neto:</span>
+                    <span>${{ subtotal|floatformat:0 }} CLP</span>
+                </div>
+                <div class="d-flex justify-content-between text-secondary small">
+                    <span>Recargo por Servicio (10%):</span>
+                    <span>${{ recargo_servicio|floatformat:0 }} CLP</span>
+                </div>
+                <div class="d-flex justify-content-between text-secondary small">
+                    <span>IVA (19%):</span>
+                    <span>${{ iva|floatformat:0 }} CLP</span>
+                </div>
+                <div class="d-flex justify-content-between fs-5 fw-bold text-white border-top border-secondary pt-2 mt-2">
+                    <span>Total Cancelado:</span>
+                    <span class="text-danger">${{ total|floatformat:0 }} CLP</span>
+                </div>
+            </div>
+            <a href="{% url 'torneos:lista' %}" class="btn btn-danger fw-bold">Volver a Torneos</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

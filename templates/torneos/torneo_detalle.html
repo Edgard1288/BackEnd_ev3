@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ torneo.nombre }} | GG-Arena{% endblock %}
+
+{% block content %}
+<div class="card bg-dark text-white border-secondary shadow-sm overflow-hidden mb-4">
+    <div class="row g-0">
+        <div class="col-md-6">
+            {% if torneo.banner %}
+                <img src="{{ torneo.banner.url }}" class="img-fluid w-100 h-100" style="object-fit: cover; min-height: 300px;" alt="{{ torneo.nombre }}">
+            {% endif %}
+        </div>
+        <div class="col-md-6 p-4 p-md-5 d-flex flex-column justify-content-between">
+            <div>
+                <span class="badge bg-danger mb-2">{{ torneo.categoria.nombre }}</span>
+                <h1 class="h2 fw-bold text-white">{{ torneo.nombre }}</h1>
+                <p class="text-secondary"><i class="bi bi-people me-1"></i>Organizador/Juego: <strong>{{ torneo.organizador }}</strong></p>
+                <div class="mb-3">
+                    <span class="badge bg-info text-dark">Estado: {{ torneo.get_estado_display }}</span>
+                    <span class="badge bg-secondary ms-2">Cupos disponibles: {{ torneo.cupos_disponibles }} / {{ torneo.cupos_maximos }}</span>
+                </div>
+                <h3 class="text-danger fw-bold mb-4">{{ torneo.precio_formateado }} CLP</h3>
+                <h6 class="fw-bold text-uppercase text-secondary">Reglas y Formato:</h6>
+                <p class="text-light opacity-75" style="white-space: pre-line;">{{ torneo.reglas }}</p>
+            </div>
+            <div class="pt-3 border-top border-secondary">
+                {% if torneo.cupos_disponibles > 0 and torneo.estado == 'abierto' %}
+                    <a href="{% url 'pases:agregar' torneo.id %}" class="btn btn-danger btn-lg w-100 fw-bold">
+                        <i class="bi bi-ticket-perforated me-2"></i>Reservar Entradas / Cupos
+                    </a>
+                {% else %}
+                    <button class="btn btn-secondary btn-lg w-100" disabled>Cupos Agotados / Torneo Cerrado</button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

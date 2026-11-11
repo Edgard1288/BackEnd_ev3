@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}Iniciar Sesión | GG-Arena{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card bg-dark text-white border-secondary p-4">
+            <h2 class="fw-bold text-danger text-center mb-4"><i class="bi bi-shield-lock me-2"></i>Acceso GG-Arena</h2>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ next }}">
+                {{ form.as_p }}
+                <button type="submit" class="btn btn-danger w-100 fw-bold mt-3">Ingresar</button>
+            </form>
+            <p class="text-center text-secondary small mt-3 mb-0">¿Sin cuenta? <a href="{% url 'usuarios:registro' %}" class="text-danger">Regístrate</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

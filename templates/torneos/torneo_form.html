@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titulo_accion }} | GG-Arena{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card bg-dark text-white border-secondary p-4 p-md-5">
+            <h2 class="fw-bold text-danger mb-4">{{ titulo_accion }}</h2>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <a href="{% url 'torneos:gestion' %}" class="btn btn-outline-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-danger fw-bold">{{ boton_texto }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

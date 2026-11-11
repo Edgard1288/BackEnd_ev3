@@ -39,11 +39,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # Módulos del Proyecto
+
     'apps.core',
     'apps.usuarios',
+    'apps.torneos',
     'apps.catalogo',
     'apps.pedidos',
+    
 ]
 
 MIDDLEWARE = [
@@ -126,6 +128,8 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # 5. URLs de Control de Autenticación
 LOGIN_URL = 'usuarios:login'
