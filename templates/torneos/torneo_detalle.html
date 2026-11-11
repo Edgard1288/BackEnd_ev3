@@ -25,9 +25,7 @@
             </div>
             <div class="pt-3 border-top border-secondary">
                 {% if torneo.cupos_disponibles > 0 and torneo.estado == 'abierto' %}
-                    <a href="{% url 'pases:agregar' torneo.id %}" class="btn btn-danger btn-lg w-100 fw-bold">
-                        <i class="bi bi-ticket-perforated me-2"></i>Reservar Entradas / Cupos
-                    </a>
+                    <button class="btn btn-secondary btn-lg w-100" disabled>Inscripción no disponible</button>
                 {% else %}
                     <button class="btn btn-secondary btn-lg w-100" disabled>Cupos Agotados / Torneo Cerrado</button>
                 {% endif %}
