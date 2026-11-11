@@ -14,7 +14,7 @@
                         <th>Torneo</th>
                         <th>Estado</th>
                         <th>Cupos disponibles</th>
-                        <th class="text-end">Inscripción</th>
+                        <th class="text-end">Precio final (IVA incluido)</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -41,10 +41,27 @@
         </div>
         <div class="card-footer bg-dark border-secondary">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <span class="fw-bold">Total</span>
-                <span class="fs-5 text-danger fw-bold">${{ total|floatformat:0 }} CLP</span>
+                <span>Inscripciones (IVA incluido)</span>
+                <span>{{ subtotal_formateado }} CLP</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+                <span>Neto de inscripciones</span>
+                <span>{{ subtotal_neto_formateado }} CLP</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+                <span>IVA incluido (19%)</span>
+                <span>{{ iva_formateado }} CLP</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+                <span>Servicio adicional (10%)</span>
+                <span>{{ recargo_servicio_formateado }} CLP</span>
+            </div>
+            <div class="d-flex justify-content-between border-top border-secondary pt-3 mb-3 fs-5 fw-bold">
+                <span>Total</span>
+                <span class="text-danger">{{ total_formateado }} CLP</span>
             </div>
             <p class="small text-secondary">Agregar torneos al carrito no reserva cupos. La disponibilidad se revisará al confirmar.</p>
+            <p class="small text-warning">El comprobante generado es informativo y no reemplaza una boleta o factura tributaria.</p>
             <div class="d-flex flex-column flex-sm-row justify-content-between gap-2">
                 <a href="{% url 'torneos:lista' %}" class="btn btn-outline-light">Seguir explorando</a>
                 <form method="post" action="{% url 'pedidos:confirmar' %}">

@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
 
+from apps.pedidos.models import ComprobanteInscripcion
 from .models import CategoriaJuego, Inscripcion, TorneoEvento
 
 
@@ -64,12 +65,62 @@ class TorneoPageTests(TestCase):
 
         response = self.client.post('/pedidos/carrito/confirmar/')
 
-        self.assertRedirects(response, '/pedidos/carrito/')
         self.assertTrue(
             Inscripcion.objects.filter(torneo=self.torneo, usuario=self.usuario).exists(),
         )
         self.assertEqual(self.torneo.cupos_disponibles, 15)
         self.assertNotIn('carrito_torneos', self.client.session)
+        comprobante = ComprobanteInscripcion.objects.get(usuario=self.usuario)
+        self.assertRedirects(response, f'/pedidos/comprobante/{comprobante.codigo}/')
+
+    def test_comprobante_guarda_y_muestra_desglose_de_cobros(self):
+        self.client.force_login(self.usuario)
+        self.torneo.costo_inscripcion = 15000
+        self.torneo.save()
+        self.client.post(f'/pedidos/carrito/agregar-torneo/{self.torneo.slug}/')
+
+        carrito_response = self.client.get('/pedidos/carrito/')
+        self.assertContains(carrito_response, '$15.000 CLP')
+        self.assertContains(carrito_response, '$1.500 CLP')
+        self.assertContains(carrito_response, '$2.395 CLP')
+        self.assertContains(carrito_response, '$16.500 CLP')
+
+        self.client.post('/pedidos/carrito/confirmar/')
+        comprobante = ComprobanteInscripcion.objects.get(usuario=self.usuario)
+
+        self.assertEqual(comprobante.subtotal, 15000)
+        self.assertEqual(comprobante.subtotal_neto, 12605)
+        self.assertEqual(comprobante.recargo_servicio, 1500)
+        self.assertEqual(comprobante.iva, 2395)
+        self.assertEqual(comprobante.total, 16500)
+        self.assertTrue(comprobante.iva_incluido)
+        response = self.client.get(f'/pedidos/comprobante/{comprobante.codigo}/')
+        self.assertContains(response, 'Copa de prueba')
+        self.assertContains(response, '$15.000 CLP')
+        self.assertContains(response, '$12.605 CLP')
+        self.assertContains(response, '$1.500 CLP')
+        self.assertContains(response, '$2.395 CLP')
+        self.assertContains(response, '$16.500 CLP')
+        self.assertContains(response, 'No acredita un pago ni reemplaza una boleta o factura tributaria.')
+        self.assertContains(self.client.get('/usuarios/perfil/'), 'Ver comprobante')
+
+    def test_comprobante_solo_es_visible_para_su_usuario(self):
+        comprobante = ComprobanteInscripcion.objects.create(
+            usuario=self.usuario,
+            subtotal=0,
+            recargo_servicio=0,
+            iva=0,
+            total=0,
+        )
+        otro_usuario = User.objects.create_user(
+            username='otro_jugador',
+            password='Fuerte-2026-clave!',
+        )
+        self.client.force_login(otro_usuario)
+
+        response = self.client.get(f'/pedidos/comprobante/{comprobante.codigo}/')
+
+        self.assertEqual(response.status_code, 404)
 
     def test_torneo_no_se_agrega_dos_veces_al_carrito(self):
         self.client.post(f'/pedidos/carrito/agregar-torneo/{self.torneo.slug}/')

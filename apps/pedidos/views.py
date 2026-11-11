@@ -5,6 +5,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from apps.torneos.models import Inscripcion, TorneoEvento
+from .models import ComprobanteInscripcion, DetalleComprobante, formato_clp
+from .pricing import calcular_desglose
 
 
 CARRITO_TORNEOS = "carrito_torneos"
@@ -30,9 +32,16 @@ def carrito_ver(request):
         request.session[CARRITO_TORNEOS] = [torneo.pk for torneo in items]
         messages.warning(request, "Se quitaron del carrito torneos que ya no están disponibles.")
 
+    subtotal = sum((torneo.costo_inscripcion for torneo in items), start=0)
+    desglose = calcular_desglose(subtotal)
     return render(request, "pedidos/carrito.html", {
         "torneos": items,
-        "total": sum(torneo.costo_inscripcion for torneo in items),
+        **desglose,
+        "subtotal_formateado": formato_clp(desglose["subtotal"]),
+        "subtotal_neto_formateado": formato_clp(desglose["subtotal_neto"]),
+        "recargo_servicio_formateado": formato_clp(desglose["recargo_servicio"]),
+        "iva_formateado": formato_clp(desglose["iva"]),
+        "total_formateado": formato_clp(desglose["total"]),
     })
 
 
@@ -97,6 +106,27 @@ def carrito_confirmar(request):
                 messages.error(request, f"'{torneo.nombre}' ya no tiene cupos disponibles.")
                 return redirect("pedidos:ver")
 
+        subtotal = sum((torneo.costo_inscripcion for torneo in torneos), start=0)
+        desglose = calcular_desglose(subtotal)
+        comprobante = ComprobanteInscripcion.objects.create(
+            usuario=request.user,
+            subtotal=desglose["subtotal"],
+            subtotal_neto=desglose["subtotal_neto"],
+            recargo_servicio=desglose["recargo_servicio"],
+            iva=desglose["iva"],
+            total=desglose["total"],
+            iva_incluido=True,
+        )
+        DetalleComprobante.objects.bulk_create([
+            DetalleComprobante(
+                comprobante=comprobante,
+                torneo=torneo,
+                nombre_torneo=torneo.nombre,
+                categoria_torneo=torneo.categoria.nombre,
+                precio_inscripcion=torneo.costo_inscripcion,
+            )
+            for torneo in torneos
+        ])
         Inscripcion.objects.bulk_create([
             Inscripcion(torneo=torneo, usuario=request.user)
             for torneo in torneos
@@ -104,4 +134,16 @@ def carrito_confirmar(request):
 
     del request.session[CARRITO_TORNEOS]
     messages.success(request, "Tu inscripción quedó confirmada correctamente.")
-    return redirect("pedidos:ver")
+    return redirect("pedidos:comprobante", codigo=comprobante.codigo)
+
+
+@login_required
+def comprobante_ver(request, codigo):
+    comprobante = get_object_or_404(
+        ComprobanteInscripcion.objects.prefetch_related("detalles"),
+        codigo=codigo,
+        usuario=request.user,
+    )
+    return render(request, "pedidos/comprobante.html", {
+        "comprobante": comprobante,
+    })

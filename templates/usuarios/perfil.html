@@ -40,6 +40,20 @@
                 <p class="text-secondary mb-0">Todavía no tienes inscripciones confirmadas.</p>
             {% endfor %}
         </div>
+        <div class="card bg-dark text-white border-secondary p-4 mt-4">
+            <h4 class="fw-bold mb-3">Mis comprobantes</h4>
+            {% for comprobante in comprobantes %}
+                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 border-bottom border-secondary py-3">
+                    <div>
+                        <div class="fw-bold">Comprobante {{ comprobante.codigo }}</div>
+                        <div class="small text-secondary">{{ comprobante.fecha_emision|date:"d/m/Y H:i" }} · Total {{ comprobante.total_formateado }} CLP</div>
+                    </div>
+                    <a class="btn btn-outline-light btn-sm" href="{% url 'pedidos:comprobante' comprobante.codigo %}">Ver comprobante</a>
+                </div>
+            {% empty %}
+                <p class="text-secondary mb-0">Aún no tienes comprobantes emitidos.</p>
+            {% endfor %}
+        </div>
     </div>
 </div>
 {% endblock %}

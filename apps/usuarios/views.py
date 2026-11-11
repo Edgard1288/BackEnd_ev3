@@ -46,7 +46,9 @@ def perfil_usuario(request):
         'torneo',
         'torneo__categoria',
     )
+    comprobantes = request.user.comprobantes_inscripcion.prefetch_related('detalles')
     return render(request, 'usuarios/perfil.html', {
         'usuario': request.user,
         'inscripciones': inscripciones,
+        'comprobantes': comprobantes,
     })
