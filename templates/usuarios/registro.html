@@ -9,10 +9,36 @@
             <h2 class="fw-bold text-danger text-center mb-4"><i class="bi bi-person-plus me-2"></i>Registro de Jugador</h2>
             <form method="post">
                 {% csrf_token %}
-                {{ form.as_p }}
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+                {% for field in form %}
+                    <div class="mb-3">
+                        {{ field.label_tag }}
+                        {{ field }}
+                        {% if field.name == 'password1' %}
+                            <div class="border border-secondary rounded p-3 mt-2">
+                                <strong>Requisitos de la contraseña:</strong>
+                                {{ field.help_text }}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
                 <button type="submit" class="btn btn-danger w-100 fw-bold mt-3">Crear Cuenta</button>
             </form>
         </div>
     </div>
 </div>
+<script>
+    const firstInvalidField = document.querySelector('.is-invalid');
+    if (firstInvalidField) {
+        firstInvalidField.setCustomValidity(firstInvalidField.dataset.errorMessage);
+        firstInvalidField.focus({ preventScroll: true });
+        firstInvalidField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        firstInvalidField.reportValidity();
+        firstInvalidField.addEventListener('input', () => firstInvalidField.setCustomValidity(''), { once: true });
+    }
+</script>
 {% endblock %}

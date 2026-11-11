@@ -14,7 +14,21 @@ class RegistroForm(UserCreationForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['username'].widget.attrs.update({'class': 'form-control'})
+        for field in self.fields.values():
+            field.widget.attrs.update({'class': 'form-control'})
+        self.password1_empty = self.is_bound and not self.data.get('password1')
+        self.password2_empty = self.is_bound and not self.data.get('password2')
+        if self.is_bound:
+            errors = self.errors
+            for name, field in self.fields.items():
+                if name not in errors and not (field.required and not self.data.get(name)):
+                    continue
+                field.widget.attrs['class'] += ' is-invalid'
+                if field.required and not self.data.get(name):
+                    error_message = "Este campo está vacío."
+                else:
+                    error_message = str(errors[name][0])
+                field.widget.attrs['data-error-message'] = error_message
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
