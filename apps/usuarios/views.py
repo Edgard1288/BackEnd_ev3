@@ -42,4 +42,11 @@ def logout_usuario(request):
 
 @login_required
 def perfil_usuario(request):
-    return render(request, 'usuarios/perfil.html', {'usuario': request.user})
+    inscripciones = request.user.inscripciones_torneos.select_related(
+        'torneo',
+        'torneo__categoria',
+    )
+    return render(request, 'usuarios/perfil.html', {
+        'usuario': request.user,
+        'inscripciones': inscripciones,
+    })

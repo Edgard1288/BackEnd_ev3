@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Carrito de inscripciones | GG-Arena{% endblock %}
+
+{% block content %}
+<h1 class="h3 fw-bold text-white mb-4"><i class="bi bi-cart text-danger me-2"></i>Carrito de inscripciones</h1>
+
+{% if torneos %}
+    <div class="card bg-dark text-white border-secondary">
+        <div class="table-responsive">
+            <table class="table table-dark table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Torneo</th>
+                        <th>Estado</th>
+                        <th>Cupos disponibles</th>
+                        <th class="text-end">Inscripción</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for torneo in torneos %}
+                    <tr>
+                        <td>
+                            <a class="text-white fw-bold" href="{% url 'torneos:detalle' torneo.slug %}">{{ torneo.nombre }}</a>
+                            <div class="small text-secondary">{{ torneo.categoria.nombre }}</div>
+                        </td>
+                        <td>{{ torneo.get_estado_display }}</td>
+                        <td>{{ torneo.cupos_disponibles }} / {{ torneo.cupos_maximos }}</td>
+                        <td class="text-end text-danger fw-bold">{{ torneo.precio_formateado }} CLP</td>
+                        <td class="text-end">
+                            <form method="post" action="{% url 'pedidos:quitar_torneo' torneo.slug %}">
+                                {% csrf_token %}
+                                <button class="btn btn-outline-danger btn-sm" type="submit">Quitar</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer bg-dark border-secondary">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="fw-bold">Total</span>
+                <span class="fs-5 text-danger fw-bold">${{ total|floatformat:0 }} CLP</span>
+            </div>
+            <p class="small text-secondary">Agregar torneos al carrito no reserva cupos. La disponibilidad se revisará al confirmar.</p>
+            <div class="d-flex flex-column flex-sm-row justify-content-between gap-2">
+                <a href="{% url 'torneos:lista' %}" class="btn btn-outline-light">Seguir explorando</a>
+                <form method="post" action="{% url 'pedidos:confirmar' %}">
+                    {% csrf_token %}
+                    <button class="btn btn-danger fw-bold" type="submit">Confirmar inscripción</button>
+                </form>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div class="card bg-dark text-white border-secondary text-center py-5">
+        <i class="bi bi-cart-x display-1 text-secondary mb-3"></i>
+        <h4>Tu carrito está vacío</h4>
+        <p class="text-secondary">Agrega un torneo y vuelve aquí para confirmar tu inscripción.</p>
+        <a href="{% url 'torneos:lista' %}" class="btn btn-danger mt-2 align-self-center">Explorar torneos</a>
+    </div>
+{% endif %}
+{% endblock %}

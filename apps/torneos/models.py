@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.utils.text import slugify
 from django.core.validators import MinValueValidator
@@ -49,7 +50,7 @@ class TorneoEvento(models.Model):
 
     @property
     def cupos_disponibles(self):
-        return self.cupos_maximos
+        return max(0, self.cupos_maximos - self.inscripciones.count())
 
     @property
     def precio_formateado(self):
@@ -65,3 +66,31 @@ class TorneoEvento(models.Model):
                 contador += 1
             self.slug = slug
         super().save(*args, **kwargs)
+
+
+class Inscripcion(models.Model):
+    torneo = models.ForeignKey(
+        TorneoEvento,
+        on_delete=models.CASCADE,
+        related_name="inscripciones",
+        verbose_name="Torneo",
+    )
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="inscripciones_torneos",
+        verbose_name="Usuario",
+    )
+    fecha_inscripcion = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["fecha_inscripcion"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["torneo", "usuario"],
+                name="inscripcion_unica_por_usuario_y_torneo",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.usuario} - {self.torneo}"

@@ -1,7 +1,5 @@
 def carrito_context(request):
-    """Permite acceder al número de figuras en el carrito desde cualquier plantilla."""
-    carrito = request.session.get('carrito', {})
-    total_items = sum(item.get('cantidad', 0) for item in carrito.values())
+    carrito = request.session.get('carrito_torneos', [])
     return {
-        'carrito_total_items': total_items
+        'carrito_total_items': len(carrito) if isinstance(carrito, list) else 0,
     }

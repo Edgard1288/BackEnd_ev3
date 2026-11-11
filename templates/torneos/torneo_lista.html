@@ -57,7 +57,10 @@
                         <div class="d-grid gap-2 mt-3">
                             <a href="{% url 'torneos:detalle' torneo.slug %}" class="btn btn-outline-light btn-sm">Ver Detalle</a>
                             {% if torneo.cupos_disponibles > 0 and torneo.estado == 'abierto' %}
-                                <button class="btn btn-secondary btn-sm" disabled>Inscripción no disponible</button>
+                                <form method="post" action="{% url 'pedidos:agregar_torneo' torneo.slug %}">
+                                    {% csrf_token %}
+                                    <button class="btn btn-danger btn-sm w-100" type="submit">Agregar al carrito</button>
+                                </form>
                             {% endif %}
                         </div>
                     </div>

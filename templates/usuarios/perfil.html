@@ -19,6 +19,27 @@
                 <li class="list-group-item bg-dark text-white border-secondary"><strong>Fecha Registro:</strong> {{ usuario.date_joined|date:"d/m/Y" }}</li>
             </ul>
         </div>
+        <div class="card bg-dark text-white border-secondary p-4 mt-4">
+            <h4 class="fw-bold mb-3">Mis inscripciones</h4>
+            {% for inscripcion in inscripciones %}
+                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 border-bottom border-secondary py-3">
+                    <div>
+                        <a class="text-white fw-bold text-decoration-none" href="{% url 'torneos:detalle' inscripcion.torneo.slug %}">{{ inscripcion.torneo.nombre }}</a>
+                        <div class="small text-secondary">{{ inscripcion.torneo.categoria.nombre }} · Inscrito el {{ inscripcion.fecha_inscripcion|date:"d/m/Y" }}</div>
+                    </div>
+                    {% if inscripcion.torneo.estado == 'abierto' %}
+                        <form method="post" action="{% url 'torneos:cancelar_inscripcion' inscripcion.torneo.slug %}">
+                            {% csrf_token %}
+                            <button class="btn btn-outline-danger btn-sm" type="submit">Cancelar inscripción</button>
+                        </form>
+                    {% else %}
+                        <span class="badge bg-secondary">No cancelable: torneo iniciado</span>
+                    {% endif %}
+                </div>
+            {% empty %}
+                <p class="text-secondary mb-0">Todavía no tienes inscripciones confirmadas.</p>
+            {% endfor %}
+        </div>
     </div>
 </div>
 {% endblock %}

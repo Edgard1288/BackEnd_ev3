@@ -1,6 +1,7 @@
 from django.test import TestCase
+from django.contrib.auth.models import User
 
-from .models import CategoriaJuego, TorneoEvento
+from .models import CategoriaJuego, Inscripcion, TorneoEvento
 
 
 class TorneoPageTests(TestCase):
@@ -17,17 +18,127 @@ class TorneoPageTests(TestCase):
             costo_inscripcion=0,
             cupos_maximos=16,
         )
+        self.usuario = User.objects.create_user(
+            username='jugador',
+            password='Fuerte-2026-clave!',
+        )
 
-    def test_lista_abre_con_torneo_abierto(self):
+    def test_lista_muestra_opcion_de_inscripcion_para_torneo_abierto(self):
         response = self.client.get('/torneos/')
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.torneo.nombre)
-        self.assertContains(response, 'Inscripción no disponible')
+        self.assertContains(response, 'Agregar al carrito')
 
-    def test_detalle_abre_con_torneo_abierto(self):
+    def test_detalle_muestra_formulario_de_inscripcion_para_torneo_abierto(self):
         response = self.client.get(f'/torneos/{self.torneo.slug}/')
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.torneo.nombre)
-        self.assertContains(response, 'Inscripción no disponible')
+        self.assertContains(response, 'Agregar al carrito')
+
+    def test_agregar_al_carrito_no_inscribe_automaticamente(self):
+        response = self.client.post(
+            f'/pedidos/carrito/agregar-torneo/{self.torneo.slug}/',
+        )
+
+        self.assertRedirects(response, '/pedidos/carrito/')
+        self.assertEqual(self.client.session['carrito_torneos'], [self.torneo.pk])
+        self.assertFalse(Inscripcion.objects.filter(torneo=self.torneo).exists())
+        self.assertContains(self.client.get('/pedidos/carrito/'), self.torneo.nombre)
+
+    def test_confirmar_carrito_requiere_autenticacion(self):
+        self.client.post(f'/pedidos/carrito/agregar-torneo/{self.torneo.slug}/')
+
+        response = self.client.post('/pedidos/carrito/confirmar/')
+
+        self.assertRedirects(
+            response,
+            '/usuarios/login/?next=/pedidos/carrito/confirmar/',
+        )
+        self.assertFalse(Inscripcion.objects.filter(torneo=self.torneo).exists())
+
+    def test_confirmar_carrito_crea_inscripcion_y_limpia_carrito(self):
+        self.client.force_login(self.usuario)
+        self.client.post(f'/pedidos/carrito/agregar-torneo/{self.torneo.slug}/')
+
+        response = self.client.post('/pedidos/carrito/confirmar/')
+
+        self.assertRedirects(response, '/pedidos/carrito/')
+        self.assertTrue(
+            Inscripcion.objects.filter(torneo=self.torneo, usuario=self.usuario).exists(),
+        )
+        self.assertEqual(self.torneo.cupos_disponibles, 15)
+        self.assertNotIn('carrito_torneos', self.client.session)
+
+    def test_torneo_no_se_agrega_dos_veces_al_carrito(self):
+        self.client.post(f'/pedidos/carrito/agregar-torneo/{self.torneo.slug}/')
+        self.client.post(f'/pedidos/carrito/agregar-torneo/{self.torneo.slug}/')
+
+        self.assertEqual(self.client.session['carrito_torneos'], [self.torneo.pk])
+
+    def test_no_confirma_carrito_si_torneo_se_cierra_o_agota(self):
+        self.client.force_login(self.usuario)
+        otro_torneo = TorneoEvento.objects.create(
+            nombre='Otra copa',
+            categoria=self.categoria,
+            organizador='Organizador',
+            reglas='Formato eliminatorio.',
+            costo_inscripcion=1000,
+            cupos_maximos=4,
+        )
+        self.client.post(f'/pedidos/carrito/agregar-torneo/{self.torneo.slug}/')
+        self.client.post(f'/pedidos/carrito/agregar-torneo/{otro_torneo.slug}/')
+        self.torneo.estado = 'en_curso'
+        self.torneo.save()
+
+        self.client.post('/pedidos/carrito/confirmar/')
+
+        self.assertFalse(Inscripcion.objects.exists())
+        self.assertEqual(len(self.client.session['carrito_torneos']), 2)
+
+    def test_quitar_torneo_del_carrito(self):
+        self.client.post(f'/pedidos/carrito/agregar-torneo/{self.torneo.slug}/')
+
+        response = self.client.post(
+            f'/pedidos/carrito/quitar-torneo/{self.torneo.slug}/',
+        )
+
+        self.assertRedirects(response, '/pedidos/carrito/')
+        self.assertEqual(self.client.session['carrito_torneos'], [])
+
+    def test_usuario_puede_cancelar_inscripcion_mientras_torneo_esta_abierto(self):
+        self.client.force_login(self.usuario)
+        Inscripcion.objects.create(torneo=self.torneo, usuario=self.usuario)
+
+        response = self.client.post(
+            f'/torneos/{self.torneo.slug}/cancelar-inscripcion/',
+        )
+
+        self.assertRedirects(response, '/usuarios/perfil/')
+        self.assertFalse(
+            Inscripcion.objects.filter(torneo=self.torneo, usuario=self.usuario).exists(),
+        )
+        self.assertEqual(self.torneo.cupos_disponibles, 16)
+
+    def test_no_se_puede_cancelar_inscripcion_cuando_torneo_ya_inicio(self):
+        self.client.force_login(self.usuario)
+        self.torneo.estado = 'en_curso'
+        self.torneo.save()
+        inscripcion = Inscripcion.objects.create(torneo=self.torneo, usuario=self.usuario)
+
+        response = self.client.post(
+            f'/torneos/{self.torneo.slug}/cancelar-inscripcion/',
+        )
+
+        self.assertRedirects(response, '/usuarios/perfil/')
+        self.assertTrue(Inscripcion.objects.filter(pk=inscripcion.pk).exists())
+
+    def test_perfil_muestra_inscripciones_confirmadas(self):
+        self.client.force_login(self.usuario)
+        Inscripcion.objects.create(torneo=self.torneo, usuario=self.usuario)
+
+        response = self.client.get('/usuarios/perfil/')
+
+        self.assertContains(response, self.torneo.nombre)
+        self.assertContains(response, 'Cancelar inscripción')

@@ -24,6 +24,7 @@ urlpatterns = [
     path('', include('apps.core.urls', namespace='core')),
     path('usuarios/', include('apps.usuarios.urls', namespace='usuarios')),
     path('torneos/', include('apps.torneos.urls', namespace='torneos')),
+    path('pedidos/', include('apps.pedidos.urls', namespace='pedidos')),
 ]
 
 if settings.DEBUG:

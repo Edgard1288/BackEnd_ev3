@@ -3,9 +3,10 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
 from .forms import TorneoEventoForm
-from .models import CategoriaJuego, TorneoEvento
+from .models import CategoriaJuego, Inscripcion, TorneoEvento
 
 
 def es_administrador(user):
@@ -50,7 +51,35 @@ def detalle(request, slug):
         slug=slug,
         activo=True,
     )
-    return render(request, 'torneos/torneo_detalle.html', {'torneo': torneo})
+    inscrito = request.user.is_authenticated and torneo.inscripciones.filter(
+        usuario=request.user,
+    ).exists()
+    carrito = request.session.get("carrito_torneos", [])
+    return render(request, 'torneos/torneo_detalle.html', {
+        'torneo': torneo,
+        'inscrito': inscrito,
+        'en_carrito': isinstance(carrito, list) and torneo.pk in carrito,
+    })
+
+
+@login_required
+@require_POST
+def cancelar_inscripcion(request, slug):
+    inscripcion = get_object_or_404(
+        Inscripcion.objects.select_related("torneo"),
+        torneo__slug=slug,
+        usuario=request.user,
+    )
+    if inscripcion.torneo.estado != "abierto":
+        messages.error(
+            request,
+            "Solo puedes cancelar tu inscripción antes de que comience el torneo.",
+        )
+    else:
+        nombre_torneo = inscripcion.torneo.nombre
+        inscripcion.delete()
+        messages.success(request, f"Cancelaste tu inscripción en '{nombre_torneo}'.")
+    return redirect("usuarios:perfil")
 
 
 @login_required
